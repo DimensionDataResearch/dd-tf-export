@@ -1,0 +1,6 @@
+[submodule "vendor/compute-api"]
+	path = vendor/compute-api
+	url = https://github.com/DimensionDataResearch/go-dd-cloud-compute
+[submodule "vendor/go-flags"]
+	path = vendor/go-flags
+	url = https://github.com/jessevdk/go-flags.git
