@@ -7,6 +7,9 @@ fmt:
 dev: fmt
 	go build -o _bin/dd-tf-export
 
+install: dev
+	go install
+
 # Perform a full (all-platforms) build.
 build: version build-windows64 build-linux64 build-mac64
 

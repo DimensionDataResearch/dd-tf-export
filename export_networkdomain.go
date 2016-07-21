@@ -53,39 +53,61 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 		return nil
 	}
 
+	page := compute.DefaultPaging()
+
 	// Export VLANs
-	fmt.Printf("\n/*\n * VLANs for %s\n */\n\n", networkDomain.Name)
-	vlans, err := exporter.APIClient.ListVLANs(networkDomain.ID)
-	if err != nil {
-		return err
-	}
-
 	vlanResourceNamesByID := make(map[string]string)
-	for index, vlan := range vlans.VLANs {
-		vlanResourceName := makeVLANResourceName(uniquenessKey + index)
-		vlanResourceNamesByID[vlan.ID] = vlanResourceName
-
-		err = exporter.ExportVLAN(vlan, networkDomainID, uniquenessKey+index)
+	fmt.Printf("\n/*\n * VLANs for %s\n */\n\n", networkDomain.Name)
+	page.First()
+	for {
+		vlans, err := exporter.APIClient.ListVLANs(networkDomain.ID, page)
 		if err != nil {
 			return err
 		}
+		if vlans.IsEmpty() {
+			break // We're done
+		}
+
+		for index, vlan := range vlans.VLANs {
+			vlanResourceName := makeVLANResourceName(uniquenessKey + index)
+			vlanResourceNamesByID[vlan.ID] = vlanResourceName
+
+			err = exporter.ExportVLAN(vlan, networkDomainID, uniquenessKey+index)
+			if err != nil {
+				return err
+			}
+		}
+
+		page.Next()
 	}
 
 	// Export firewall rules
 	fmt.Printf("\n/*\n * Firewall rules for %s\n */\n\n", networkDomain.Name)
-	firewallRules, err := exporter.APIClient.ListFirewallRules(networkDomain.ID)
-	for index, firewallRule := range firewallRules.Rules {
-		err = exporter.ExportFirewallRule(firewallRule, networkDomainID, uniquenessKey+index)
+	page.First()
+	for {
+		firewallRules, err := exporter.APIClient.ListFirewallRules(networkDomain.ID, page)
 		if err != nil {
 			return err
 		}
+		if firewallRules.IsEmpty() {
+			break // We're done
+		}
+
+		for index, firewallRule := range firewallRules.Rules {
+			err = exporter.ExportFirewallRule(firewallRule, networkDomainID, uniquenessKey+index)
+			if err != nil {
+				return err
+			}
+		}
+
+		page.Next()
 	}
 
 	// Export servers
 	fmt.Printf("\n/*\n * Servers for %s\n */\n\n", networkDomain.Name)
 	serverResourceNamesByPrivateIPv4 := make(map[string]string)
 	vlanResourceNamesByPrivateIPv4 := make(map[string]string)
-	page := compute.DefaultPaging()
+	page.First()
 	for {
 		servers, err := exporter.APIClient.ListServersInNetworkDomain(networkDomain.ID, page)
 		if err != nil {
@@ -116,7 +138,7 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 
 	// Export NAT rules
 	fmt.Printf("\n/*\n * NAT rules for %s\n */\n\n", networkDomain.Name)
-	page = compute.DefaultPaging()
+	page.First()
 	for {
 		natRules, err := exporter.APIClient.ListNATRules(networkDomain.ID, page)
 		if err != nil {
