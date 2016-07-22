@@ -32,7 +32,7 @@ func (exporter *Exporter) ExportNAT(natRule compute.NATRule, networkDomainID str
 
 	natInternalAddress := natRule.InternalIPAddress
 	if serverResourceName != "" {
-		natInternalAddress = fmt.Sprintf("${ddcloud_server.%s.id}", serverResourceName)
+		natInternalAddress = fmt.Sprintf("${ddcloud_server.%s.primary_adapter_ipv4}", serverResourceName)
 	}
 
 	configuration := strings.TrimSpace(

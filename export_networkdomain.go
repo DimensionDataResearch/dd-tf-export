@@ -81,28 +81,6 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 		page.Next()
 	}
 
-	// Export firewall rules
-	fmt.Printf("\n/*\n * Firewall rules for %s\n */\n\n", networkDomain.Name)
-	page.First()
-	for {
-		firewallRules, err := exporter.APIClient.ListFirewallRules(networkDomain.ID, page)
-		if err != nil {
-			return err
-		}
-		if firewallRules.IsEmpty() {
-			break // We're done
-		}
-
-		for index, firewallRule := range firewallRules.Rules {
-			err = exporter.ExportFirewallRule(firewallRule, networkDomainID, uniquenessKey+index)
-			if err != nil {
-				return err
-			}
-		}
-
-		page.Next()
-	}
-
 	// Export servers
 	fmt.Printf("\n/*\n * Servers for %s\n */\n\n", networkDomain.Name)
 	serverResourceNamesByPrivateIPv4 := make(map[string]string)
@@ -138,6 +116,7 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 
 	// Export NAT rules
 	fmt.Printf("\n/*\n * NAT rules for %s\n */\n\n", networkDomain.Name)
+	natResourceNamesByPublicIPv4 := make(map[string]string)
 	page.First()
 	for {
 		natRules, err := exporter.APIClient.ListNATRules(networkDomain.ID, page)
@@ -159,7 +138,41 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 				serverResourceName = ""
 			}
 
+			natResourceNamesByPublicIPv4[natRule.ExternalIPAddress] = makeNATResourceName(uniquenessKey + index)
+
 			err = exporter.ExportNAT(natRule, networkDomainID, vlanResourceName, serverResourceName, uniquenessKey+index)
+			if err != nil {
+				return err
+			}
+		}
+
+		page.Next()
+	}
+
+	// Export firewall rules
+	fmt.Printf("\n/*\n * Firewall rules for %s\n */\n\n", networkDomain.Name)
+	page.First()
+	for {
+		firewallRules, err := exporter.APIClient.ListFirewallRules(networkDomain.ID, page)
+		if err != nil {
+			return err
+		}
+		if firewallRules.IsEmpty() {
+			break // We're done
+		}
+
+		for index, firewallRule := range firewallRules.Rules {
+			var natResourceName string
+			if firewallRule.Destination.IPAddress != nil {
+				var ok bool
+				natResourceName, ok = natResourceNamesByPublicIPv4[firewallRule.Destination.IPAddress.Address]
+
+				if !ok {
+					natResourceName = ""
+				}
+			}
+
+			err = exporter.ExportFirewallRule(firewallRule, networkDomainID, natResourceName, uniquenessKey+index)
 			if err != nil {
 				return err
 			}

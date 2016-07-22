@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
 func main() {
 	options := parseOptions()
-	if options.Verbose {
-		enableLogging()
-	}
 
 	if options.Version {
 		fmt.Println("dd-tf-export " + ProgramVersion)
@@ -37,8 +33,4 @@ func main() {
 	}
 
 	os.Exit(0)
-}
-
-func enableLogging() {
-	log.SetOutput(os.Stdout)
 }

@@ -31,7 +31,7 @@ resource "ddcloud_firewall_rule" "%s" {
 `
 
 // ExportFirewallRule exports a ddcloud_firewallRule resource to Terraform configuration.
-func (exporter *Exporter) ExportFirewallRule(firewallRule compute.FirewallRule, networkDomainID string, uniquenessKey int) error {
+func (exporter *Exporter) ExportFirewallRule(firewallRule compute.FirewallRule, networkDomainID string, natResourceName string, uniquenessKey int) error {
 	if firewallRule.RuleType == "DEFAULT_RULE" {
 		return nil // Ignore built-in rules.
 	}
@@ -67,7 +67,10 @@ func (exporter *Exporter) ExportFirewallRule(firewallRule compute.FirewallRule, 
 	}
 	destinationAddress := firewallRule.Destination.IPAddress
 	if destinationAddress != nil {
-		if destinationAddress.PrefixSize != nil {
+		if !isEmpty(natResourceName) {
+			destinationLabel = "destination_address     "
+			destination = fmt.Sprintf("${ddcloud_nat.%s.public_ipv4}", natResourceName)
+		} else if destinationAddress.PrefixSize != nil {
 			destinationLabel = "destination_network     "
 			destination = fmt.Sprintf("%s/%d", destinationAddress.Address, *destinationAddress.PrefixSize)
 		} else {
