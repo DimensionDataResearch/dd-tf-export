@@ -59,7 +59,6 @@ func (exporter *Exporter) exportServer(server compute.Server, networkDomainID st
 }
 
 const configurationTemplateServerDisk = `
-
 	disk {
 		scsi_unit_id    = %d
 		size_gb         = %d
@@ -75,11 +74,14 @@ func (exporter *Exporter) exportServerDisks(server compute.Server) (diskConfigur
 		)
 	}
 
+	if !isEmpty(diskConfiguration) {
+		diskConfiguration = "\n" + diskConfiguration
+	}
+
 	return
 }
 
 const configurationTemplateServerTag = `
-
 	tag {
 		name            = "%s"
 		value           = "%s"
@@ -96,10 +98,14 @@ func (exporter *Exporter) exportServerTags(server compute.Server) (tagConfigurat
 	}
 
 	for _, tag := range tags.Items {
-		tagConfiguration += "\n\n" + fmt.Sprintf(configurationTemplateServerTag,
+		tagConfiguration += fmt.Sprintf(configurationTemplateServerTag,
 			tag.Name,
 			tag.Value,
 		)
+	}
+
+	if !isEmpty(tagConfiguration) {
+		tagConfiguration = "\n" + tagConfiguration
 	}
 
 	return
