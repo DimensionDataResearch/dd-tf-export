@@ -32,4 +32,4 @@ test: fmt
 	go test -v github.com/DimensionDataResearch/dd-tf-export
 
 version:
-	echo "package main\n\n// ProgramVersion is the current version of the DD Cloud Compute terraform exporter.\nconst ProgramVersion = \"v0.1 (`git rev-parse HEAD`)\"" > ./version-info.go
+	echo "package main\n\n// ProgramVersion is the current version of the DD Cloud Compute terraform exporter.\nconst ProgramVersion = \"v0.2-alpha1 (`git rev-parse HEAD`)\"" > ./version-info.go

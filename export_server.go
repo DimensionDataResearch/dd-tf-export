@@ -60,9 +60,9 @@ func (exporter *Exporter) exportServer(server compute.Server, networkDomainID st
 
 const configurationTemplateServerDisk = `
 	disk {
-		scsi_unit_id    = %d
-		size_gb         = %d
-		speed           = "%s"
+		scsi_unit_id        = %d
+		size_gb             = %d
+		speed               = "%s"
 	}`
 
 func (exporter *Exporter) exportServerDisks(server compute.Server) (diskConfiguration string, err error) {
@@ -83,8 +83,8 @@ func (exporter *Exporter) exportServerDisks(server compute.Server) (diskConfigur
 
 const configurationTemplateServerTag = `
 	tag {
-		name            = "%s"
-		value           = "%s"
+		name                = "%s"
+		value               = "%s"
 	}`
 
 func (exporter *Exporter) exportServerTags(server compute.Server) (tagConfiguration string, err error) {
