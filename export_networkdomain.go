@@ -108,7 +108,11 @@ func (exporter *Exporter) ExportNetworkDomain(id string, uniquenessKey int, recu
 			serverUniquenessKey := uniquenessKey + index
 			serverResourceName := makeServerResourceName(serverUniquenessKey)
 			serverResourceNamesByPrivateIPv4[serverPrivateIPv4] = serverResourceName
-			exporter.exportServer(server, networkDomainID, vlanID, serverUniquenessKey)
+
+			err = exporter.exportServer(server, networkDomainID, vlanID, serverUniquenessKey)
+			if err != nil {
+				return err
+			}
 		}
 
 		page.Next()

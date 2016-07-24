@@ -25,7 +25,7 @@ resource "ddcloud_server" "%s" {
 	dns_primary             = "8.8.8.8"
 	dns_secondary           = "8.8.4.4"
 
-	osimage_id              = "%s"%s%s
+	osimage_name            = "%s"%s%s
 }
 `
 
@@ -40,6 +40,14 @@ func (exporter *Exporter) exportServer(server compute.Server, networkDomainID st
 		return err
 	}
 
+	osImage, err := exporter.APIClient.GetOSImage(server.SourceImageID)
+	if err != nil {
+		return err
+	}
+	if osImage == nil {
+		return fmt.Errorf("Cannot find OS image '%s'.", server.SourceImageID)
+	}
+
 	configuration := fmt.Sprintf(configurationTemplateServer,
 		makeServerResourceName(uniquenessKey),
 		server.Name,
@@ -49,7 +57,7 @@ func (exporter *Exporter) exportServer(server compute.Server, networkDomainID st
 		networkDomainID,
 		primaryVLANResourceName,
 		*server.Network.PrimaryAdapter.PrivateIPv4Address,
-		server.SourceImageID,
+		osImage.Name,
 		diskConfiguration,
 		tagConfiguration,
 	)
